@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %} Homepage {% endblock %}
+
+{% block index %}
+<main role="main">
+    <div class="jumbotron">
+        <div class="container">
+            <h1 class="display-3">Buildings as active contributors to socio-ecological systems</h1>
+            <p>This website provides an understanding in buildings implementing sustainable designs.
+            </p>
+            <p>
+                <a class="btn btn-primary btn-lg" href="{{ url_for('about') }}" role="button">Learn more ‣</a>
+            </p>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <h2>Buildings</h2>
+                <p>
+                    For sustainable buildings around the world information is gathered about which designs are implemented.
+                    Explore them by sorting and filtering the data.
+                </p>
+                <p>
+                    <a class="btn btn-secondary" href="{{ url_for('buildings') }}" role="button">View details ‣</a>
+                </p>
+            </div>
+            <div class="col-md-4">
+                <h2>Design Implementations</h2>
+                <p>
+                    All the sustainable design implementations have a specific goal. Whether it is to reuse energy or water,
+                    or to provide habitat to plants and animals. Learn more about the functions of these implementations.
+                </p>
+                <p>
+                    <a class="btn btn-secondary" href="{{ url_for('designs') }}" role="button">View details ‣</a>
+                </p>
+            </div>
+            <div class="col-md-4">
+                <h2>Network graph</h2>
+                <p>
+                    All the buildings implementing one or more sustainable design implementations are structured into
+                    a graph database. This is visualised in an interactive network for users to explore different design
+                    implementations.
+                </p>
+                <p>
+                    <a class="btn btn-secondary" href="{{ url_for('network') }}" role="button">View details ‣</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</main>
+<div class="row" style="height: 100px;"></div>
+{% endblock %}

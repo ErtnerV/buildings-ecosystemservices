@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %} Designs {% endblock %}
+
+
+{% block content %}
+<h2 class="text-center">Design implementations</h2>
+<br/>
+<iframe class="col-lg-20 col-md-12 col-sm-12" src="https://herokuthesis.herokuapp.com/dash_design/" style="height:500px; border:none"; ></iframe>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <h5>Top 10 designs using the most ecosystem services</h5>
+            <p>The degree of a node is the number of neighbouring nodes it has.
+                The higher the degree of a node, the more central it is in the network.</p>
+        </div>
+        <div class="col-md-8">
+            <ol class="list-group list-group-numbered">
+                {% for lst in lst_top10 %}
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                        <div class="ms-2 me-auto">
+                            <div class="font-weight-bold">{{ lst[0] }}</div>
+                            Degree centrality: {{ lst[1] }}
+                        </div>
+                        <span class="badge badge-primary" style="font-size:1rem;" data-toggle="tooltip" data-placement="left" title="Number of used ecosystem services">{{ lst[2] }}</span>
+                    </li>
+                {% endfor %}
+            </ol>
+        </div>
+    </div>
+    <br/>
+    <div class="row">
+        <div class="col-md-4">
+            <h5>Top 10 designs with the highest closeness centrality</h5>
+            <p>Closeness centrality is based on the total distance between one node and all other nodes.
+                A node with the highest closeness centrality is the one that is closest to all other nodes in the network.
+            </p>
+        </div>
+        <div class="col-md-8">
+            <ol class="list-group list-group-numbered">
+                {% for lst in lst_top10_closeness %}
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                        <div class="ms-2 me-auto">
+                            <div class="font-weight-bold">{{ lst[0] }}</div>
+                            Closeness centrality: {{ lst[1] }}
+                        </div>
+                    </li>
+                {% endfor %}
+            </ol>
+        </div>
+    </div>
+    <br/>
+    <div class="row">
+        <div class="col-md-4">
+            <h5>Top 10 designs with the highest eigenvector centrality</h5>
+            <p>The eigenvector centrality considers how central a node is by checking how central its neighbouring nodes are.
+                For calculating the eigenvector centrality of a node, the weighted sum of the centralities of neighbouring nodes is taken.
+                A greater eigenvector might represent more nodes that can be reached with the same effort.
+            </p>
+        </div>
+        <div class="col-md-8">
+            <ol class="list-group list-group-numbered">
+                {% for lst in lst_top10_eigenvector %}
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                        <div class="ms-2 me-auto">
+                            <div class="font-weight-bold">{{ lst[0] }}</div>
+                            Eigenvector centrality: {{ lst[1] }}
+                        </div>
+                    </li>
+                {% endfor %}
+            </ol>
+        </div>
+    </div>
+    <div class="row" style="height: 100px;"></div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip()
+    })
+</script>
+{% endblock %}

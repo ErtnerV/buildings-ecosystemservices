@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %} Designs network {% endblock %}
+
+
+{% block headscripts %}
+<style type="text/css">
+    #viz {
+        /*width: 900px;*/
+        height: 450px;
+    }
+</style>
+<script src="https://cdn.neo4jlabs.com/neovis.js/v1.5.0/neovis.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type=text/javascript>
+    $(function() {
+        $('select#process_input').change(function() {
+            $.getJSON('/background_process2', {
+                dropdown: formdropdown.dropdown[formdropdown.dropdown.selectedIndex].text,
+            }, function(data) {
+                $("#result").text(data.result);
+            });
+            return false;
+        });
+    });
+</script>
+{% endblock %}
+
+
+{% block midscripts %}
+<script>
+    var design_name;
+
+    var url = '{{ url }}';
+    var password = '{{ password }}';
+
+    function setDesign(){
+        design_name=JSON.stringify(formdropdown.dropdown[formdropdown.dropdown.selectedIndex].text);
+        document.getElementById("designid").innerHTML = formdropdown.dropdown[formdropdown.dropdown.selectedIndex].text;
+        draw();
+    }
+
+    var viz;
+
+    function draw() {
+        var config = {
+            container_id: "viz",
+            server_url: url,
+            server_user: "neo4j",
+            server_password: password,
+            labels: {
+                "Design_implementation": {
+                    caption: "implemented_design_strategies",
+                    size: "degree",
+                    font: {
+                        size: 14
+                    }
+                },
+                "Ecosystem_service": {
+                    caption: "categories",
+                    size: "degree",
+                    font: {
+                        size: 12
+                    }
+                }
+            },
+            relationships: {
+                "USES": {
+                    caption: false,
+                    thickness: "count"
+                }
+            },
+            initial_cypher: "MATCH (p:Design_implementation)-[r:USES]->(m:Ecosystem_service) WHERE p.implemented_design_strategies = " + design_name + " RETURN p, r, m",
+            encrypted: "ENCRYPTION_ON"
+        }
+        viz = new NeoVis.default(config);
+        viz.render();
+
+        viz.registerOnEvent("completed", (e)=>{
+            viz["_network"].on("click", (event)=>{
+                console.log(event.nodes[0]); //get node properties
+            });
+        });
+    }
+</script>
+{% endblock %}
+
+
+{% block content %}
+<h5>Select a design strategy from the dropdown menu below to see which ecosystem services it uses.</h5>
+
+<form name="formdropdown">
+    <select name ="dropdown" onchange="setDesign()" id="process_input" class="form-control form-control-sm" aria-label="Default select example">
+        <option>Select a design</option>
+        {% for design in Designs %}
+            <option value="{{design}}">{{design}}</option>
+        {% endfor %}
+    </select>
+    <label id="lblmess"></label>
+</form>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <div id="viz"></div>
+        </div>
+        <div class="col-md-4">
+            <br/>
+            <h5 id="designid" class="p-style"></h5>
+            <br/>
+            <input type="submit" class="btn btn-secondary" value="Stabilize" id="stabilize">
+        </div>
+    </div>
+    <div class="row" style="height: 100px;"></div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+    $("#stabilize").click(function() {
+        viz.stabilize();
+    })
+</script>
+{% endblock %}

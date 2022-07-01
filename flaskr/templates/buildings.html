@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %} Buildings {% endblock %}
+
+
+{% block content %}
+<h2 class="text-center">Sustainable buildings</h2>
+<br/>
+<iframe class="col-lg-20 col-md-12 col-sm-12" src="https://herokuthesis.herokuapp.com/dash_buildings/" style="height:500px; border:none"; ></iframe>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <h5>Top 10 buildings with the most implemented design strategies</h5>
+            <p>The degree of a node is the number of neighbouring nodes it has.
+                The higher the degree of a node, the more central it is in the network.</p>
+        </div>
+        <div class="col-md-8">
+            <ol class="list-group list-group-numbered">
+                {% for lst in lst_top10 %}
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                        <div class="ms-2 me-auto">
+                            <div class="font-weight-bold">{{ lst[0] }}</div>
+                            Degree centrality: {{ lst[1] }}
+                        </div>
+                        <span class="badge badge-primary" style="font-size:1rem;" data-toggle="tooltip" data-placement="left" title="Number of implemented design strategies">{{ lst[2] }}</span>
+                    </li>
+                {% endfor %}
+            </ol>
+        </div>
+    </div>
+    <div class="row" style="height: 100px;"></div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip()
+    })
+</script>
+{% endblock %}

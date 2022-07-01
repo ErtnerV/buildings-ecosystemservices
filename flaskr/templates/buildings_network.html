@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block title %} Buildings network {% endblock %}
+
+
+{% block headscripts %}
+<style type="text/css">
+    #viz {
+        /*width: 900px;*/
+        height: 650px;
+    }
+    #viz2 {
+        height: 450px;
+    }
+</style>
+<script src="https://cdn.neo4jlabs.com/neovis.js/v1.5.0/neovis.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type=text/javascript>
+    $(function() {
+        $('select#process_input').change(function() {
+            $.getJSON('/background_process', {
+                dropdown: formdropdown.dropdown[formdropdown.dropdown.selectedIndex].text,
+            }, function(data) {
+                $("#result").text(data.result);
+            });
+            return false;
+        });
+    });
+</script>
+{% endblock %}
+
+
+{% block midscripts %}
+<script>
+    var building_name;
+
+    function setBuildingName(){
+        building_name=JSON.stringify(formdropdown.dropdown[formdropdown.dropdown.selectedIndex].text);
+        document.getElementById("buildingid").innerHTML = formdropdown.dropdown[formdropdown.dropdown.selectedIndex].text;
+        draw();
+        draw2();
+    }
+
+    var viz;
+    var viz2;
+
+    function draw() {
+        var config = {
+            container_id: "viz",
+            server_url: '{{ url }}',
+            server_user: "neo4j",
+            server_password: '{{ password }}',
+            labels: {
+                "Building": {
+                    caption: "building_name",
+                    size: "degree",
+                    community: "community",
+                    font: {
+                        size: 12
+                    }
+                },
+                "Design_implementation": {
+                    caption: "implemented_design_strategies",
+                    size: "degree",
+                    font: {
+                        size: 14
+                    }
+                }
+            },
+            relationships: {
+                "IMPLEMENTS": {
+                    caption: false,
+                    thickness: "count"
+                }
+            },
+            initial_cypher: "MATCH path=(b:Building)--(d:Design_implementation)--(b2:Building) WHERE b.building_name = " + building_name + " RETURN path",
+            encrypted: "ENCRYPTION_ON"
+        }
+        viz = new NeoVis.default(config);
+        viz.render();
+
+        viz.registerOnEvent("completed", (e)=>{
+            viz["_network"].on("click", (event)=>{
+                console.log(event.nodes[0]); //get node properties
+            });
+        });
+    }
+
+    function draw2() {
+        var config2 = {
+            container_id: "viz2",
+            server_url: '{{ url }}',
+            server_user: "neo4j",
+            server_password: '{{ password }}',
+            labels: {
+                "Building": {
+                    caption: "building_name",
+                    size: "degree",
+                    community: "community",
+                    font: {
+                        size: 14
+                    }
+                },
+                "Design_implementation": {
+                    caption: "implemented_design_strategies",
+                    size: "degree",
+                    font: {
+                        size: 12
+                    }
+                }
+            },
+            relationships: {
+                "IMPLEMENTS": {
+                    caption: false,
+                    thickness: "count"
+                }
+            },
+            initial_cypher: "MATCH (p:Building)-[r:IMPLEMENTS]->(m:Design_implementation) WHERE p.building_name = " + building_name + " RETURN p, r, m",
+            encrypted: "ENCRYPTION_ON"
+        }
+        viz2 = new NeoVis.default(config2);
+        viz2.render();
+
+        viz2.registerOnEvent("completed", (e)=>{
+            viz2["_network"].on("click", (event)=>{
+                console.log(event.nodes[0]); //get node properties
+            });
+        });
+    }
+</script>
+{% endblock %}
+
+
+{% block content %}
+<h5>Select a building from the dropdown menu below to see its implemented design strategies.</h5>
+
+<form name="formdropdown">
+    <select name ="dropdown" onchange="setBuildingName()" id="process_input" class="form-control form-control-sm" aria-label="Default select example">
+        <option>Select a building</option>
+        {% for building in Buildings %}
+            <option value="{{building}}">{{building}}</option>
+        {% endfor %}
+    </select>
+    <label id="lblmess"></label>
+</form>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <div id="viz2"></div>
+        </div>
+        <div class="col-md-4">
+            <br/>
+            <h5 id="buildingid" class="p-style"></h5>
+            <ul class="list-group list-group-flush">
+              <li id="result" class="list-group-item"></li>
+            </ul>
+            <br/>
+            <input type="submit" class="btn btn-secondary" value="Stabilize" id="stabilize2">
+        </div>
+    </div>
+    </br>
+    <div class="row">
+        <div class="col-md-8">
+            <div id="viz"></div>
+        </div>
+        <div class="col-md-4">
+            <br/>
+            <h5>Buildings that have the same implemented design strategies.</h5>
+            <br/>
+            <input type="submit" class="btn btn-secondary" value="Stabilize" id="stabilize">
+        </div>
+    </div>
+    <div class="row" style="height: 100px;"></div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+    $("#stabilize").click(function() {
+        viz.stabilize();
+    })
+
+    $("#stabilize2").click(function() {
+        viz2.stabilize();
+    })
+</script>
+{% endblock %}
