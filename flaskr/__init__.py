@@ -8,11 +8,12 @@ import networkx as nx
 import scipy
 
 
-# Neo4j login - make sure to put neo4j+ssc in.
+# Neo4j login
 url = os.environ['NEO4j_URL']
 username = "neo4j"
 password = os.environ['NEO4j_PASSWORD']
 url_graph = os.environ['NEO4j_GRAPH_URL']
+flask_secret_key = os.environ['FLASK_KEY']
 
 
 # Connect to py2neo and neo4j
@@ -21,7 +22,7 @@ session = driver.session()
 neo_graph = Graph(url, auth=(username, password))
 
 
-# Voor buildings_network.html
+# DF with designs
 query_designs = """
 MATCH(n:Design_implementation)
 RETURN n.implemented_design_strategies as Design
@@ -30,6 +31,8 @@ result_designs = neo_graph.query(query_designs).to_data_frame()
 result_df_designs = pd.DataFrame(result_designs)
 result_df_designs = result_df_designs.sort_values("Design")
 
+
+# DF with buildings
 query_network_buildings = """
 MATCH(n:Building)
 RETURN n.building_name as Name
@@ -39,7 +42,7 @@ result_df_network_building = pd.DataFrame(result_network_buildings)
 result_df_network_building = result_df_network_building.sort_values("Name")
 
 
-# Voor buildings.html
+# DF with info buildings
 query_buildings = """
 MATCH(n:Building)
 RETURN n.building_name as Name, n.country as Country, n.city as City, n.link_building as Website
@@ -49,7 +52,7 @@ result_df_buildings = pd.DataFrame(result_buildings)
 result_df_buildings['Website'] = '[Link](' + result_df_buildings['Website'].astype(str) + ')'
 
 
-# Voor designs.html
+# DF with info designs
 query_dash_designs = """
 MATCH(n:Design_implementation)
 RETURN n.implemented_design_strategies as Design, n.ecosystem_service1 as FirstEcosystem, 
@@ -59,20 +62,36 @@ result_dash_designs = neo_graph.query(query_dash_designs).to_data_frame()
 result_df_dash_designs = pd.DataFrame(result_dash_designs)
 
 
+# Top 20 buildings implementing most designs
 query_buildings_top20 = """MATCH (n)-[r:IMPLEMENTS]->()
 RETURN n.building_name as Name, count(r) AS num
 ORDER BY num
-DESC LIMIT 10
+DESC LIMIT 20
 """
 result_buildings_top20 = neo_graph.query(query_buildings_top20).to_data_frame()
 
 
+# Top 20 designs using most ecosystems
 query_designs_top20 = """MATCH (n)-[r:USES]->()
 RETURN n.implemented_design_strategies as Design, count(r) AS num
 ORDER BY num
 DESC LIMIT 20
 """
 result_designs_top20 = neo_graph.query(query_designs_top20).to_data_frame()
+
+
+# Number of buildings in network
+Q_nr_buildings = "MATCH (n:Building) RETURN COUNT(n)"
+R_nr_buildings = neo_graph.query(Q_nr_buildings)
+data_nr_buildings = R_nr_buildings.data()
+building_count = data_nr_buildings[0]["COUNT(n)"]
+
+
+# Number of designs in network
+Q_nr_designs = "MATCH (n:Design_implementation) RETURN COUNT(n)"
+R_nr_designs = neo_graph.query(Q_nr_designs)
+data_nr_designs = R_nr_designs.data()
+design_count = data_nr_designs[0]["COUNT(n)"]
 
 
 def graph_buildings_to_designs():
@@ -267,7 +286,7 @@ def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
-        SECRET_KEY='dev',
+        SECRET_KEY=flask_secret_key,
         # DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
     )
 
@@ -287,7 +306,7 @@ def create_app(test_config=None):
     @app.route('/')
     @app.route('/index')
     def home():
-        return render_template("index.html")
+        return render_template("index.html", building_count=building_count, design_count=design_count)
 
     @app.route("/buildings_network")
     def network():
